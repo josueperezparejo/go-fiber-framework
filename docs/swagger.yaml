@@ -1,0 +1,436 @@
+basePath: /api
+definitions:
+  dtos.CreateProjectDTO:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+  dtos.CreateTaskDTO:
+    properties:
+      completed:
+        type: boolean
+      description:
+        type: string
+      project_id:
+        type: integer
+      title:
+        type: string
+    required:
+    - project_id
+    - title
+    type: object
+  dtos.UpdateProjectDTO:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+    type: object
+  dtos.UpdateTaskDTO:
+    properties:
+      completed:
+        type: boolean
+      description:
+        maxLength: 255
+        type: string
+      title:
+        maxLength: 100
+        minLength: 3
+        type: string
+    type: object
+  models.Project:
+    properties:
+      created_at:
+        description: '@Description The creation timestamp of the project'
+        example: "2024-06-04T12:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The deletion timestamp of the project (if deleted)'
+        example: "null"
+        type: string
+      description:
+        description: '@Description The description of the project'
+        example: This is a description of the project
+        type: string
+      id:
+        description: '@Description The unique identifier of the project'
+        example: 1
+        type: integer
+      name:
+        description: '@Description The name of the project'
+        example: Project 1
+        type: string
+      tasks:
+        description: '@Description The tasks associated with the project'
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      updated_at:
+        description: '@Description The last update timestamp of the project'
+        example: "2024-06-04T12:00:00Z"
+        type: string
+    type: object
+  models.Task:
+    description: Task model with GORM embedded fields
+    properties:
+      completed:
+        description: '@Description The completion status of the task'
+        example: false
+        type: boolean
+      created_at:
+        description: '@Description The creation timestamp of the task'
+        example: "2024-06-04T12:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The deletion timestamp of the task (if deleted)'
+        example: "null"
+        type: string
+      description:
+        description: '@Description The description of the task'
+        example: Write API documentation using Swagger
+        type: string
+      id:
+        description: '@Description The unique identifier of the task'
+        example: 1
+        type: integer
+      project_id:
+        description: '@Description The ID of the project this task belongs to'
+        example: 1
+        type: integer
+      title:
+        description: '@Description The title of the task'
+        example: Complete project documentation
+        type: string
+      updated_at:
+        description: '@Description The last update timestamp of the task'
+        example: "2024-06-04T12:00:00Z"
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: This is a example API for a CRUD of projects and tasks.
+  title: my API with Fiber
+  version: "1.0"
+paths:
+  /projects:
+    get:
+      consumes:
+      - application/json
+      description: Return a list of all projects
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Project'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      description: Create a new project in the database
+      parameters:
+      - description: Project to create
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateProjectDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Project'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a project
+      tags:
+      - projects
+  /projects/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a project based on its ID
+      parameters:
+      - description: ID of the project
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      consumes:
+      - application/json
+      description: Return a project based on its ID
+      parameters:
+      - description: ID of the project
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a project by ID
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Update an existing project based on its ID
+      parameters:
+      - description: ID of the project
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Project to update
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateProjectDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a project
+      tags:
+      - projects
+  /projects/{project_id}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: Return all tasks associated with a specific project
+      parameters:
+      - description: ID of the project
+        in: path
+        name: project_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get tasks by project ID
+      tags:
+      - tasks
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Return a list of all tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Create a new task in the database
+      parameters:
+      - description: Task to create
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateTaskDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a task based on its ID
+      parameters:
+      - description: ID of the task
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a task
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: Return a task based on its ID
+      parameters:
+      - description: ID of the task
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a task by ID
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task based on its ID
+      parameters:
+      - description: ID of the task
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data of the task to update
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateTaskDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a task
+      tags:
+      - tasks
+schemes:
+- http
+- https
+swagger: "2.0"
